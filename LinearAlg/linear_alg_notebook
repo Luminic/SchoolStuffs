@@ -1,0 +1,112 @@
+{
+ "metadata": {
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.8.4-final"
+  },
+  "orig_nbformat": 2,
+  "kernelspec": {
+   "name": "python38364bit92426f0431d04e3a965ee09a08f8f37f",
+   "display_name": "Python 3.8.3 64-bit"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 2,
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 2,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "import os\n",
+    "import sys\n",
+    "sys.path.insert(0, \"/home/l/Python\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [],
+   "source": [
+    "from linear_alg import *"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 6,
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": "Matrix 3x3:\n 2,  -4,  -8,  \n 4,  -8,  -16, \n 1,  -2,  -4,  \n"
+    }
+   ],
+   "source": [
+    "m = Matrix([[4,-4,-8],[4,-6,-16],[1,-2,-2]])-Matrix.identity(3)*2\n",
+    "m.print()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": "Matrix 3x3:\n 4.0,  -8.0,  -16.0, \n 0.0,   0.0,   0.0,  \n 0.0,   0.0,   0.0,  \nMatrix 3x3:\n 1.0, -2.0, -4.0, \n 0.0,  0.0,  0.0, \n 0.0,  0.0,  0.0, \n"
+    }
+   ],
+   "source": [
+    "m.to_echelon_form()\n",
+    "m.round(5)\n",
+    "m.print()\n",
+    "m.to_reduced_echelon_form(already_echelon_form=True)\n",
+    "m.round(5)\n",
+    "m.print()"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 13,
+   "metadata": {
+    "tags": []
+   },
+   "outputs": [
+    {
+     "output_type": "stream",
+     "name": "stdout",
+     "text": "[4.0, 2.0, 0.0]\n[8.0, 0.0, 2.0]\n"
+    }
+   ],
+   "source": [
+    "print((m+Mat.identity(3)*2)*Vec([2,1,0]))\n",
+    "print((m+Mat.identity(3)*2)*Vec([4,0,1]))"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ]
+}
