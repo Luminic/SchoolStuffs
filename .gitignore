@@ -136,3 +136,6 @@ dmypy.json
 
 # Cython debug symbols
 cython_debug/
+
+# My chem stuff has textbook pages & data so I don't want to upload them
+Chem/
