@@ -13,15 +13,14 @@ Version = ("Alpha",1,0,0)
 
 class Point:
     """A typical 2D point class"""
+    x: Number
+    y: Number
 
     def __init__(self, x: Union[tuple[Number, Number], Number], y: Optional[Number] = None):
         """
         `Point(5, 6)`, `Point((5,6))`, and `Point([5,6])` are all valid ways of
         initializing a point with x=5 and y=6
         """
-
-        self.x: Number = 0
-        self.y: Number = 0
 
         if isinstance(x, (tuple, list)):
             self.x = x[0]
@@ -125,11 +124,13 @@ def point_line_segment_distance(p0: Point, p1: Point, p2: Point) -> Number:
         return p0.distance_to(projection)
 
 
-def vertex_namer(n: int) -> str:
+def default_vertex_namer(graph: Graph) -> str:
     """Gives a name to the nth vertex in a graph"""
 
     # if n < 26: return "ABCDEFGHIJKLMNOPQRSTUVWXYZ"[n]
     # else: return str(n-25)
+
+    n = len(graph.vertices)
 
     letters = ""
     if n < len(letters): return letters[n]
@@ -137,6 +138,8 @@ def vertex_namer(n: int) -> str:
 
 
 class GraphMaker:
+    graph: Graph
+    vert_pos: dict[Vertex, Point]
     
     class InteractionState(Enum):
         NONE = 0
@@ -144,22 +147,24 @@ class GraphMaker:
         VERTEX_MOVEMENT = 2
 
 
-    def __init__(self):
+    def __init__(self, graph: Optional[Graph] = None, vert_pos: Optional[dict[Vertex, Point]] = None, vertex_namer: Callable[[Graph],str] = None):
         # Pygame Setup
         self.viewport = [900,900]
-        self.screen = pygame.display.set_mode(self.viewport)
-        self.screen.fill((255,255,255))
+        # self.screen = pygame.display.set_mode(self.viewport)
+        # self.screen.fill((255,255,255))
 
-        pygame.display.set_caption('Graph Maker (%s %s.%s.%s)' %Version)
-        pygame.display.update()
+        # pygame.display.set_caption('Graph Maker (%s %s.%s.%s)' %Version)
+        # pygame.display.update()
 
         # Other Setup
         self.running = True
         self.clock = pygame.time.Clock()
         self.pressed_keys = [] # Keys currently pressed
 
-        self.graph = Graph()
-        self.vert_pos: dict[Vertex, Point] = dict()
+        self.graph = graph if graph != None else Graph()
+        self.vert_pos = vert_pos if vert_pos != None else dict()
+
+        self.vertex_namer = default_vertex_namer if vertex_namer == None else vertex_namer
 
         self.interaction_state = GraphMaker.InteractionState.NONE
         self.selected = None
@@ -167,6 +172,12 @@ class GraphMaker:
         self.vertex_radius = 8
         self.edge_width = 5
         self.loop_radius = 15
+    
+    def init_screen(self):
+        self.screen = pygame.display.set_mode(self.viewport)
+        self.screen.fill((255,255,255))
+        pygame.display.set_caption('Graph Maker (%s %s.%s.%s)' %Version)
+        pygame.display.update()
     
     def screen_region(self) -> pygame.Rect:
         return pygame.Rect((0,0), self.viewport)
@@ -183,29 +194,41 @@ class GraphMaker:
         
         for edge, multiplicity in self.graph.edges.items():
             if multiplicity >= 1:
-
-                if point_line_segment_distance(point, self.vert_pos[edge.v1], self.vert_pos[edge.v2]) <= self.edge_width*multiplicity:
-                    return edge
+                if edge.is_loop():
+                    if self.loop_radius - self.edge_width*multiplicity/2 < point.distance_to(self.vert_pos[edge.v1] + Point(self.loop_radius-self.edge_width, -self.loop_radius+self.edge_width)) < self.loop_radius + self.edge_width*multiplicity/2:
+                        return edge
+                else:
+                    if point_line_segment_distance(point, self.vert_pos[edge.v1], self.vert_pos[edge.v2]) <= self.edge_width*multiplicity:
+                        return edge
 
         return None
     
-    def mainloop(self):
-        while self.running:
-            self.screen.fill((255, 255, 255))
-            self.events_check()
+    def update(self):
+        """Single update cycle"""
+        self.screen.fill((255, 255, 255))
+        self.events_check()
 
-            self.draw_graph(self.screen, self.screen_region())
-            
-            self.clock.tick(60)
-            pygame.display.update()
+        self.draw_graph(self.screen, self.screen_region())
+        
+        self.clock.tick(60)
+        pygame.display.update()
+    
+    def mainloop(self, init_screen: bool = True, quit_on_end: bool = True):
+        """Display graph until window is closed"""
 
-        pygame.quit()
+        self.running = True
+
+        if init_screen: self.init_screen()
+
+        while self.running: self.update()
+
+        if quit_on_end: pygame.quit()
+        else: pygame.display.quit()
 
     def draw_graph(self, surface: pygame.Surface, region: pygame.Rect) -> None:
         to_pyg_coords = lambda v: list(self.vert_pos[v].map(int)) if isinstance(v, Vertex) else list(v.map(int))
 
         for edge, multiplicity in self.graph.edges.items():
-            # TODO: Make the multiplicity clearer
             if multiplicity >= 1:
                 color = (0,0,0)
                 if edge == self.selected: color = (0,0,200)
@@ -215,7 +238,7 @@ class GraphMaker:
                         surface,
                         color,
                         to_pyg_coords(self.vert_pos[edge.v1] + Point(self.loop_radius-self.edge_width, -self.loop_radius+self.edge_width)),
-                        self.loop_radius + 2.5*multiplicity,
+                        self.loop_radius + self.edge_width*multiplicity/2,
                         width = self.edge_width*multiplicity)
                 else:
                     pygame.draw.line(surface, color, to_pyg_coords(edge.v1), to_pyg_coords(edge.v2), width=self.edge_width*multiplicity)
@@ -241,7 +264,7 @@ class GraphMaker:
         for event in pygame.event.get():
 
             if event.type == pygame.KEYDOWN: # When a key is pressed
-                self.pressed_keys.append(pygame.key.name(event.key))
+                self.pressed_keys.append(event.key)
 
                 if event.key == pygame.K_BACKSPACE:
                     if isinstance(self.selected, Vertex):
@@ -257,9 +280,16 @@ class GraphMaker:
                 elif event.key == pygame.K_p:
                     print(self.graph)
 
+                elif event.key == pygame.K_m:
+                    if pygame.K_LCTRL in self.pressed_keys:
+                        print(self.graph.adjacency_matrix_list())
+                    else:
+                        m = self.graph.adjacency_matrix()
+                        if isinstance(m, la.Matrix): m.print()
+
             elif event.type == pygame.KEYUP: # When a key is unpressed
                 try:
-                    self.pressed_keys.remove(pygame.key.name(event.key))
+                    self.pressed_keys.remove(event.key)
                 except ValueError:
                     pass
             
@@ -276,7 +306,7 @@ class GraphMaker:
                     if event.button == 3:
                         # Creating a vertex
                         if self.selected == None:
-                            new_vert = Vertex(vertex_namer(len(self.graph.vertices)))
+                            new_vert = Vertex(self.vertex_namer(self.graph))
                             self.graph.vertices.add(new_vert)
                             self.vert_pos[new_vert] = mouse_coords
 

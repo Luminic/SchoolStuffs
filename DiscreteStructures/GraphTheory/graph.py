@@ -1,6 +1,23 @@
 from __future__ import annotations
 from collections import defaultdict
-from typing import Union
+from typing import Union, Optional
+import warnings
+
+import os
+import sys
+
+# Try to import linear algebra
+la_available: bool
+try:
+    # Add a couple paths that might work
+    sys.path.append(os.getcwd() + "/LinearAlg")
+    sys.path.append(os.getcwd() + "/../../LinearAlg")
+    import linear_alg as la
+    la_available = True
+except ImportError:
+    la_available = False
+    warnings.warn("Failed to load linear_alg. Some functionality may be unavailable", ImportWarning)
+
 
 class Vertex:
     """
@@ -88,8 +105,8 @@ class Graph:
     directed: bool
 
     def __init__(self,
-        vertices: set[Vertex] = set(),
-        edges: Union[dict[Edge, int], set[Edge, int]] = {},
+        vertices: Optional[set[Vertex]] = None,
+        edges: Union[dict[Edge, int], set[Edge, int], None] = None,
         simple: bool = False,
         directed: bool = False,
     ) -> None:
@@ -101,8 +118,9 @@ class Graph:
         self.simple = simple
         self.directed = directed
 
-        self.vertices = vertices
+        self.vertices = vertices if vertices != None else set()
 
+        if edges == None: edges = {}
         if (isinstance(edges, set)): # Convert the set into a dict
             edges = {e:1 for e in edges}
         
@@ -162,6 +180,35 @@ class Graph:
     def clear(self) -> None:
         self.vertices = set()
         self.edges = defaultdict(lambda: 0)
+    
+    def adjacency_matrix_list(self, vertex_order: Union[list[Vertex], dict[Vertex, int], None] = None) -> list[list[int]]:
+        """Returns a row-major adjacency matrix for the graph as nested lists"""
+        if not isinstance(vertex_order, dict):
+            if vertex_order == None:
+                vertex_order = sorted(self.vertices, key=lambda v: v.name)
+            vertex_order = {v:i for i,v in enumerate(vertex_order)}
+
+        adj_mat = []
+        for _ in range(len(self.vertices)): adj_mat.append([0]*len(self.vertices))
+
+        for edge, multiplicity in self.edges.items():
+            if self.directed or edge.is_loop():
+                adj_mat[vertex_order[edge.v1]][vertex_order[edge.v2]] += multiplicity
+            else:
+                adj_mat[vertex_order[edge.v1]][vertex_order[edge.v2]] += multiplicity
+                adj_mat[vertex_order[edge.v2]][vertex_order[edge.v1]] += multiplicity
+                
+        return adj_mat
+    
+    def adjacency_matrix(self) -> Optional[la.Matrix]:
+        """Returns the adjacency matrix
+
+        If the linear algebra import failed (`la_available=False`), it will return
+        `None`. For a function that will never fail, see `adjacency_matrix_list`.
+        """
+        if la_available and len(self.vertices) > 0:
+            return la.Matrix(self.adjacency_matrix_list())
+        return None
 
 
 if __name__ == "__main__":

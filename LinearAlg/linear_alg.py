@@ -1,149 +1,149 @@
+from __future__ import annotations
+from typing import Any, Optional, Union, TypeVar, Generic
+import copy
+
 EPSILON = 0.0001
 
-class VectorIterator:
-    def __init__(self, vector):
-        self.vector = vector
-        self.index = 0
+T = TypeVar('T')
 
-    def __next__(self):
-        if self.index < len(self.vector):
-            self.index += 1
-            return self.vector[self.index-1]
-        raise StopIteration
+class Vector(Generic[T]):
+    data: list[T]
 
-
-class Vector:
-    def __init__(self, data):
+    def __init__(self, data: list[T]) -> None:
         self.data = data
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.data)
 
-    def __getitem__(self, i):
+    def __getitem__(self, i: int) -> T:
         return self.data[i]
 
-    def __setitem__(self, i, val):
+    def __setitem__(self, i: int, val: T) -> None:
         self.data[i] = val
 
     def __iter__(self):
-        return VectorIterator(self)
+        for d in self.data: yield d
 
-    def __str__(self):
+    def __str__(self) -> str:
         return "["+", ".join([str(d) for d in self.data])+"]"
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Vector({str(self)})"
 
-    def __mul__(self, scalar):
+    def __mul__(self, scalar: T) -> Vector[T]:
         conditional_rounding = lambda x: round(x) if abs(round(x)-x) < EPSILON else x
         
         return Vector([conditional_rounding(n*scalar) for n in self])
     
-    def __rmul__(self, scalar):
+    def __rmul__(self, scalar: T) -> Vector[T]:
         return self*scalar
     
-    def __truediv__(self, scalar):
+    def __truediv__(self, scalar: T) -> Vector[T]:
         return self * (1 / scalar)
     
-    def __rtruediv__(self, scalar):
+    def __rtruediv__(self, scalar) -> Vector[T]:
         return Vector([scalar/v for v in self])
 
-    def __add__(self, other):
+    def __add__(self, other: Vector[T]) -> Vector[T]:
         if len(self) != len(other):
             raise ValueError("Cannot add two vectors of different lengths")
 
         return Vector([self[i] + other[i] for i in range(len(self))])
     
-    def __sub__(self, other):
+    def __sub__(self, other: Vector[T]) -> Vector[T]:
         return self + (other * -1)
 
-    def __neg__(self):
+    def __neg__(self) -> Vector[T]:
         return self * -1
 
-    def __abs__(self):
+    def __abs__(self) -> Vector[T]:
         return Vector([abs(n) for n in self.data])
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if type(other) != type(self):
             return False
 
         return all(self[i] == other[i] for i in range(len(self)))
 
-    def __ne__(self, other):
+    def __ne__(self, other: Any) -> bool:
         return not self == other
 
-    def dot(self, other):
+    def dot(self, other: Vector[T]) -> T:
         res = 0
         for i in range(len(self.data)):
             res += self.data[i]*other.data[i]
         return res
 
-    def magnitude(self):
+    def magnitude(self) -> T:
         return sum(n**2 for n in self.data)**(1/2)
 
-    def normalize(self):
+    def normalize(self) -> Vector[T]:
         return self / self.magnitude()
 
-    def round(self, dec=0):
+    def round(self, dec: int = 0) -> None:
         self.data = [round(d, dec) for d in self.data]
 
-    def is_zero(self):
+    def is_zero(self) -> bool:
         for n in self.data:
             if n != 0:
                 return False
         return True
     
-    def index_first_nonzero(self):
+    def index_first_nonzero(self) -> Optional[int]:
         for i in range(len(self.data)):
             if abs(self.data[i]) > EPSILON:
                 return i
         return None
 
-    def first_nonzero(self):
+    def first_nonzero(self) -> Optional[T]:
         i = self.index_first_nonzero()
         if i == None:
             return None
         else:
             return self.data[i]
     
-    def append(self, n):
+    def append(self, n: T) -> None:
         self.data.append(n)
 
-    def ortho_proj(self, other):
+    def ortho_proj(self, other: Vector[T]):
         return (self.dot(other) / other.dot(other)) * other
 
-    def copy(self):
+    def copy(self) -> Vector[T]:
         return Vector(self.data.copy())
 
 
-class Matrix:
+class Matrix(Generic[T]):
     """
     n x m row-major matrix
     """
-    def __init__(self, vecs):
+
+    rows: list[Vector[T]]
+    size: tuple[int, int]
+
+    def __init__(self, vecs: Union[list[list[T]], list[Vector[T]]]):
         size = (len(vecs), len(vecs[0]))
         for i in range(len(vecs)):
             assert len(vecs[i]) == size[1], "All rows must be the same size"
             # Convert lists to vector if necessary
-            if type(vecs[i]) == list:
+            if isinstance(vecs[i], list):
                 vecs[i] = Vector(vecs[i])
 
         self.rows = vecs
 
     @staticmethod
-    def identity(n):
+    def identity(n: int) -> Matrix[int]:
         return Matrix([[int(i==j) for i in range(n)] for j in range(n)])
     
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.rows)
     
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Matrix({str(self.as_list())})"
 
-    def __getitem__(self, i):
+    def __getitem__(self, i: int) -> Vector[T]:
         return self.rows[i]
     
-    def print(self, name=""):
+    def print(self, name: str = "") -> None:
         def conditional_abs(n):
             if "__abs__" in dir(n.__class__): return abs(n)
             return n
@@ -162,13 +162,13 @@ class Matrix:
                 print(padded + "," + " "*padding_needed, end="")
             print()
 
-    def as_list(self):
+    def as_list(self) -> list[list[T]]:
         return [list(r) for r in self.rows]
 
-    def transpose(self):
+    def transpose(self) -> Matrix[T]:
         return Matrix([list(row) for row in zip(*self.rows)])
 
-    def __mul__(self, other):
+    def __mul__(self, other: Union[Matrix[T], Vector[T], T]) -> Matrix[T]:
         if type(other) == Matrix:
             assert len(self.rows[0]) == len(other.rows), "Cannot multiply matrices of incompatible sizes"
             res = []
@@ -193,7 +193,7 @@ class Matrix:
         else:
             return Matrix([[self.rows[i][j] * other for j in range(len(self.rows[i]))] for i in range(len(self.rows))])
     
-    def __rmul__(self, other):
+    def __rmul__(self, other: Union[Matrix[T], Vector[T], T]) -> Matrix[T]:
         if isinstance(other, Matrix):
             return other.__mul__(self)
         elif isinstance(other, Vector):
@@ -201,26 +201,39 @@ class Matrix:
         return self.__mul__(other)
 
     def __truediv__(self, other):
+        # TODO: Make this function not dumb
         return self.__mul__(1/other)
 
-    def __add__(self, other):
+    def __add__(self, other: Union[Matrix[T], T]) -> Matrix[T]:
         if type(other) == Matrix:
             return Matrix([[self.rows[i][j] + other.rows[i][j] for j in range(len(self.rows[i]))] for i in range(len(self.rows))])
         else:
             return Matrix([[self.rows[i][j] + other for j in range(len(self.rows[i]))] for i in range(len(self.rows))])
     
-    def __sub__(self, other):
+    def __sub__(self, other: Union[Matrix[T], T]) -> Matrix[T]:
         return self.__add__(other * -1)
 
-    def __neg__(self):
+    def __neg__(self) -> Matrix[T]:
         return self * -1
+    
+    def __pow__(self, n: int) -> Matrix[T]:
+        if n == 0:
+            if len(self.rows) != len(self.rows[0]): raise ValueError("Matrix must be square to have a 0 power")
+            return Matrix.identity(len(self.rows))
+        if n == 1:
+            return self.copy()
+        else:
+            res = self
+            for _ in range(1, n):
+                res *= self
+            return res 
 
-    def round(self, dec=0):
+    def round(self, dec: int = 0) -> None:
         for r in range(len(self.rows)):
             for c in range(len(self.rows[r])):
                 self.rows[r][c] = round(self.rows[r][c]*pow(10,dec))/pow(10,dec)
     
-    def to_echelon_form(self):
+    def to_echelon_form(self) -> None:
         i = 1
         while 1:
             self.rows.sort(key = lambda x: abs(x).data, reverse=True)
@@ -239,7 +252,7 @@ class Matrix:
             if first_nonzero != None:
                 self.rows[i] /= first_nonzero
 
-    def to_reduced_echelon_form(self, already_echelon_form=False):
+    def to_reduced_echelon_form(self, already_echelon_form: bool = False) -> None:
         if not already_echelon_form:
             self.to_echelon_form()
 
@@ -252,7 +265,7 @@ class Matrix:
                 scaling_factor = self.rows[j][pivot_point] / self.rows[i][pivot_point]
                 self.rows[j] -= self.rows[i] * scaling_factor
 
-    def determinant(self, iterating_rows=True, other_index=0):
+    def determinant(self, iterating_rows: bool = True, other_index: int = 0) -> T:
         if (len(self.rows) == 2 and len(self.rows[0]) == 2):
             return self.rows[0][0] * self.rows[1][1] - self.rows[0][1] * self.rows[1][0]
 
@@ -265,7 +278,7 @@ class Matrix:
                 result += self.cofactor(other_index, j) * self[other_index][j]
         return result
         
-    def excluding(self, i, j):
+    def excluding(self, i: int, j: int) -> Matrix[T]:
         """
         Returns a new matrix without row i and column j
         """
@@ -279,17 +292,17 @@ class Matrix:
                 res.append(row)
         return Matrix(res)
 
-    def cofactor(self, i, j):
+    def cofactor(self, i: int, j: int) -> T:
         "i & j are zero indexed"
         cf_mat = self.excluding(i, j)
         return cf_mat.determinant() * (-1)**(i+j)
 
-    def add_column(self, col):
+    def add_column(self, col: Union[list[T], Vector[T]]) -> None:
         assert len(col) == len(self.rows), "invalid column size"
         for i in range(len(self.rows)):
             self.rows[i].append(col[i])
 
-    def inverse(self):
+    def inverse(self) -> Matrix[T]:
         m = self.transpose()
         m.rows.extend(Matrix.identity(len(self.rows)))
         m = m.transpose()
@@ -298,6 +311,14 @@ class Matrix:
         m.rows = m.rows[len(self.rows):]
         m = m.transpose()
         return m
+    
+    def copy(self) -> Matrix[T]:
+        """Returns a copy of `self`
+
+        The copy is somewhat deep; if `T` is an object it will be shallow-copied
+        but the rows and columns will be deep-copied
+        """
+        Matrix([r.copy() for r in self.rows])
 
 # Aliases for shorter code
 Vec = Vector
