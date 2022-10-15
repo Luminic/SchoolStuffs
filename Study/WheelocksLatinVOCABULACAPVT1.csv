@@ -1,19 +1,19 @@
 "me, myself",mē,0,0
-what,quid,0,0
+what,quid,0,1
 nothing,nihil,0,0
-not,nōn,0,0
-often,saepe,0,0
+not,nōn,0,1
+often,saepe,0,1
 if,sī,0,0
 "to love, like","amō, amāre, amāvī, amātum",0,0
-"to think, ponder, consider, plan","cōgitō, cōgitāre, cōgitāvī, cōgitātum",0,0
-"to owe, ought, must, should","dēbeō, dēbēre, dēbuī, dēbitum",0,0
-"to wander, err, go astray, make a mistake, be mistaken","errō, errāre, errāvī, errātum",0,0
-to praise,"laudō, laudāre, laudāvī, laudātum",0,0
-"to remind, advise, warn","moneō, monēre, monuī, monitum",0,0
+"to think, ponder, consider, plan","cōgitō, cōgitāre, cōgitāvī, cōgitātum",0,1
+"to owe, ought, must, should","dēbeō, dēbēre, dēbuī, dēbitum",1,0
+"to wander, err, go astray, make a mistake, be mistaken","errō, errāre, errāvī, errātum",2,1
+to praise,"laudō, laudāre, laudāvī, laudātum",1,0
+"to remind, advise, warn","moneō, monēre, monuī, monitum",0,1
 "to be well, be in good health, hello, greetings","salveō, salvēre, salvē, salvēte",0,0
-"to preserve, save, keep, guard","servō, servāre, servāvī, servātum",0,0
-"to preserve, conserve, maintain","cōnservō, cōnservāre, cōnservāvī, cōnservātum",0,0
-"to frighten, terrify","terreō, terrēre, terruī, territum",0,0
-"to be strong, have power, be well","valeō, valēre, valuī, valitūrum",0,0
-"to see, observe, understand","videō, vidēre, vīdī, vīsum",0,0
-"to call, summon","vocō, vocāre, vocāvī, vocātum",0,0
+"to preserve, save, keep, guard","servō, servāre, servāvī, servātum",0,1
+"to preserve, conserve, maintain","cōnservō, cōnservāre, cōnservāvī, cōnservātum",0,2
+"to frighten, terrify","terreō, terrēre, terruī, territum",0,1
+"to be strong, have power, be well","valeō, valēre, valuī, valitūrum",1,0
+"to see, observe, understand","videō, vidēre, vīdī, vīsum",0,1
+"to call, summon","vocō, vocāre, vocāvī, vocātum",1,0

@@ -1,10 +1,10 @@
 import pathlib
 import csv
-from pydoc import ispath
 from typing import Optional
+import random
 
 def select_file_dialog() -> Optional[pathlib.Path]:
-    current_dir = pathlib.Path('.')
+    current_dir = pathlib.Path(__file__).parent.resolve()
     options = []
     for item in current_dir.iterdir():
         if item.is_file():
@@ -14,7 +14,7 @@ def select_file_dialog() -> Optional[pathlib.Path]:
     chosen_file = None
 
     while chosen_file == None:
-        inp = input("Choose file to convert or input path: ")
+        inp = input("Choose file or input path: ")
 
         try:
             chosen_index = int(inp)
@@ -96,10 +96,97 @@ def convert_dialog(file: pathlib.Path):
         else:
             print(f"Unknown input: \"{inp}\"")
 
+def parse_input(inp: str) -> str:
+    macrons = {'a':'ā', 'e':'ē', 'i':'ī', 'o':'ō', 'u':'ū'}
+
+    parsed_input = []
+    for c in inp:
+        if c == '-':
+            if len(parsed_input) != 0:
+                if parsed_input[-1] in macrons:
+                    parsed_input[-1] = macrons[parsed_input[-1]]
+                    continue
+        parsed_input.append(c)
+    return "".join(parsed_input)
+
+def scoring(correct: int, incorrect: int) -> int:
+    return correct - incorrect * 2
+
+
 def study(file: pathlib.Path):
+    batch_size = 7
+
+    study_set = []
     with open(file, 'r') as f:
-        reader = csv.reader(f)
-        print(list(reader))
+        for line in csv.reader(f):
+            line[2] = int(line[2])
+            line[3] = int(line[3])
+            study_set.append(line)
+
+    sets = 0
+    while 1:
+        sets += 1
+
+        current_batch = []
+        if len(study_set) <= batch_size:
+            current_batch = study_set
+        else:
+            sorted_study_set = sorted(study_set, key = lambda item: scoring(item[2],item[3]))
+            current_score = -1
+            for item in sorted_study_set:
+                if len(current_batch) < batch_size:
+                    current_batch.append(item)
+                    current_score = scoring(item[2], item[3])
+                elif scoring(item[2], item[3]) == current_score:
+                    current_batch.append(item)
+                else:
+                    break
+
+            random.shuffle(current_batch)
+            current_batch = current_batch[:batch_size]
+
+        print(f"~=~=~ Set {sets} ~=~=~")
+
+        try:
+            for item in current_batch:
+                print(item[0])
+
+                inp = parse_input(input(": "))
+                correct = (set(inp.split(", ")) == set(item[1].split(", ")))
+
+                if correct:
+                    message = "Correct"
+                    item[2] += 1
+                else:
+                    message = "Incorrect"
+                    item[3] += 1
+
+                inp = input(f"{message}: {item[1]} ")
+                print()
+                if inp == 'i':
+                    correct = False
+                    print("Overridden to incorrect")
+                    item[2] -= 1
+                    item[3] += 1
+                elif inp == 'c':
+                    correct = True
+                    print("Overridden to correct")
+                    item[2] += 1
+                    item[3] -= 1
+                
+        except KeyboardInterrupt:
+            print("\nTerminated batch early")
+        
+        print(current_batch)
+        inp = input("Continue? ")
+        if inp in ('q', "quit", 'n', "no"):
+            break
+    
+    with open(file, 'w') as f:
+        writer = csv.writer(f)
+        writer.writerows(study_set)
+    
+    print(f"Data saved to {file.absolute()}")
 
 def main_dialog():
     while 1:
