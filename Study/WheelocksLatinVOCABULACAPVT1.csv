@@ -1,19 +1,19 @@
 "me, myself",mē,0,0
-what,quid,0,1
+what,quid,5,2
 nothing,nihil,0,0
-not,nōn,0,1
-often,saepe,0,1
+not,nōn,2,2
+often,saepe,4,1
 if,sī,0,0
-"to love, like","amō, amāre, amāvī, amātum",0,0
-"to think, ponder, consider, plan","cōgitō, cōgitāre, cōgitāvī, cōgitātum",0,1
+"to love, like","amō, amāre, amāvī, amātum",1,0
+"to think, ponder, consider, plan","cōgitō, cōgitāre, cōgitāvī, cōgitātum",5,3
 "to owe, ought, must, should","dēbeō, dēbēre, dēbuī, dēbitum",1,0
-"to wander, err, go astray, make a mistake, be mistaken","errō, errāre, errāvī, errātum",2,1
+"to wander, err, go astray, make a mistake, be mistaken","errō, errāre, errāvī, errātum",4,1
 to praise,"laudō, laudāre, laudāvī, laudātum",1,0
-"to remind, advise, warn","moneō, monēre, monuī, monitum",0,1
-"to be well, be in good health, hello, greetings","salveō, salvēre, salvē, salvēte",0,0
-"to preserve, save, keep, guard","servō, servāre, servāvī, servātum",0,1
-"to preserve, conserve, maintain","cōnservō, cōnservāre, cōnservāvī, cōnservātum",0,2
-"to frighten, terrify","terreō, terrēre, terruī, territum",0,1
+"to remind, advise, warn","moneō, monēre, monuī, monitum",4,2
+"to be well, be in good health, hello, greetings","salveō, salvēre, salvē, salvēte",0,1
+"to preserve, save, keep, guard","servō, servāre, servāvī, servātum",5,3
+"to preserve, conserve, maintain","cōnservō, cōnservāre, cōnservāvī, cōnservātum",2,4
+"to frighten, terrify","terreō, terrēre, terruī, territum",1,5
 "to be strong, have power, be well","valeō, valēre, valuī, valitūrum",1,0
-"to see, observe, understand","videō, vidēre, vīdī, vīsum",0,1
+"to see, observe, understand","videō, vidēre, vīdī, vīsum",4,5
 "to call, summon","vocō, vocāre, vocāvī, vocātum",1,0
